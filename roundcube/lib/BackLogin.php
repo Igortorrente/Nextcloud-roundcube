@@ -48,13 +48,13 @@ class BackLogin
      * @param string $password The password.
      * @return array/bool ['sessid', 'sessauth'] on success, false on error.
      */
-    public function __construct($email, $password) {
+    public function __construct($email, $password, $rcServer, $rcInternalAddress) {
         $this->email           = $email;
         $this->password        = $password;
         $this->config          = \OC::$server->getConfig();
         $this->enableSSLVerify = $this->config->getAppValue('roundcube', 'enableSSLVerify', true);
-        $this->rcServer          = \OC::$server->getSession()->get(AuthHelper::SESSION_RC_SERVER, '');
-        $this->rcInternalAddress = \OC::$server->getSession()->get(AuthHelper::SESSION_RC_ADDRESS, '');
+        $this->rcServer          = $rcServer;
+        $this->rcInternalAddress = $rcInternalAddress;
     }
 
     /**
@@ -158,7 +158,7 @@ class BackLogin
      */
     private function sendRequest($rcQuery, $method, $data = null) {
         $response = false;
-        $rcQuery = $this->rcInternalAddress . "$rcQuery";
+        $rcQuery = $this->rcServer . "$rcQuery";
         Util::writeLog('roundcube', __METHOD__ . ": URL: '$rcQuery'.", Util::DEBUG);
         try {
             $curl = curl_init();

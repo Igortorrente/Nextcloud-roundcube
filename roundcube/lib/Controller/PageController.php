@@ -25,12 +25,18 @@ use OCA\RoundCube\InternalAddress;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\Authentication\LoginCredentials\IStore;
+use OCP\IRequest;
 use OCP\Util;
 
 class PageController extends \OCP\AppFramework\Controller
 {
-	public function __construct($AppName, \OCP\IRequest $request) {
+    /** @var credentialStore */
+    private $credentialStore;
+
+	public function __construct($AppName, IRequest $request, IStore $credentialStore) {
 		parent::__construct($AppName, $request);
+		$this->credentialStore = $credentialStore;
 	}
 
 	/**
@@ -39,32 +45,36 @@ class PageController extends \OCP\AppFramework\Controller
 	 */
 	public function index() {
 		\OC::$server->getNavigationManager()->setActiveEntry($this->appName);
-		$user = \OC::$server->getUserSession()->getUser()->getUID();
-		$email = \OC::$server->getUserSession()->getUser()->getEMailAddress();
+		$email = AuthHelper::getUserEmail();
 
-		if ((strpos($user, '@') === false) && (strpos($email, '@') === false)) {
+		if (strpos($email, '@') === false) {
+			$user = \OC::$server->getUserSession()->getUser()->getUID();
 			Util::writeLog($this->appName, __METHOD__ . ": username ($user) is not an email address and email ($email) is not valid also.", Util::WARN);
 			return new TemplateResponse($this->appName, "part.error.noemail", array('user' => $user));
 		}
-		if (!AuthHelper::login()) {
+
+		$rcIA = new InternalAddress($email);
+		$authHelper = new AuthHelper($rcIA, $this->credentialStore, $email);
+		if (!$authHelper->login()) {
 			return new TemplateResponse($this->appName, "part.error.login", array());
 		}
-		$url = \OC::$server->getSession()->get(AuthHelper::SESSION_RC_ADDRESS);
+
 		$tplParams = array(
 			'appName'     => $this->appName,
-			'url'         => $url,
+			'url'         => $rcIA->getAddress(),
 			'loading'     => \OC::$server->getURLGenerator()->imagePath($this->appName, 'loader.gif'),
 			'showTopLine' => \OC::$server->getConfig()->getAppValue('roundcube', 'showTopLine', false)
 		);
+
 		$tpl = new TemplateResponse($this->appName, "tpl.mail", $tplParams);
+
 		// This is mandatory to embed a different server in an iframe.
-		$rcServer = \OC::$server->getSession()->get(AuthHelper::SESSION_RC_SERVER, '');
+		$rcServer = $rcIA->getServer();
 		if ($rcServer !== '') {
 			$csp = new ContentSecurityPolicy();
 			$csp->addAllowedFrameDomain($rcServer);
 			// $csp->addAllowedScriptDomain($rcServer);
 			$csp->allowInlineScript(true)->allowEvalScript(true);
-			// Util::writeLog($this->appName, __METHOD__ . ": Added CSP frame: $rcServer", Util::DEBUG);
 			$tpl->setContentSecurityPolicy($csp);
 		}
 		return $tpl;

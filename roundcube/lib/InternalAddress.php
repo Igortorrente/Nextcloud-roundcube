@@ -38,8 +38,7 @@ class InternalAddress
     private $server   = null;
     private $type     = null;
 
-    public function __construct() {
-        $email = \OC::$server->getUserSession()->getUser()->getEMailAddress();
+    public function __construct($email) {
         $usrDom = explode('@', $email, 2);
         if (count($usrDom) === 2 && strlen($usrDom[1]) > 3) {
             $this->domain = $usrDom[1];

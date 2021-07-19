@@ -25,6 +25,7 @@
 
 namespace OCA\RoundCube\AppInfo;
 
+use OCP\Authentication\LoginCredentials\IStore;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -45,7 +46,7 @@ class Application extends App implements IBootstrap
 
     public function register(IRegistrationContext $context): void {
         $context->registerService(PageController::class, function (ContainerInterface $c) {
-            return new PageController(self::APP_ID, $c->get(IRequest::class));
+            return new PageController(self::APP_ID, $c->get(IRequest::class), $c->get(IStore::class));
         }, false);
 
         $context->registerService(SettingsController::class, function(ContainerInterface $c) {
@@ -63,7 +64,6 @@ class Application extends App implements IBootstrap
     private function registerHooksAndEvents() {
         Util::connectHook('OC_User', 'post_login', 'OCA\RoundCube\AuthHelper', 'postLogin');
         Util::connectHook('OC_User', 'logout', 'OCA\RoundCube\AuthHelper', 'logout');
-        Util::connectHook('OC_User', 'post_setPassword', 'OCA\RoundCube\AuthHelper', 'changePasswordListener');
     }
 
     private function addNavigationManager() {
