@@ -4,7 +4,7 @@
 	<namespace>RoundCube</namespace>
 	<name>RoundCube Mail</name>
 	<licence>AGPL</licence>
-	<author>Martin Reinhardt; Leonardo R. Morelli; Ruslan Bor</author>
+	<author>Martin Reinhardt; Leonardo R. Morelli; Ruslan Bor, Igor Torrente</author>
 	<version>10.0.3</version>
 	<dependencies>
 		<nextcloud min-version="19" max-version="22.0" />
@@ -12,5 +12,5 @@
 	<description>
 		Integrates existing roundcube into NextCloud.
 	</description>
-	<website>https://github.com/flionet89/Nextcloud-roundcube</website>
+	<website>https://github.com/Igortorrente/Nextcloud-roundcube</website>
 </info>
