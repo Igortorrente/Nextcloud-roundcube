@@ -44,3 +44,14 @@ ProxyPass /roundcube2/ https://proxymail2.domain.com/
 ProxyPassReverse /roundcube1/ https://proxymail1.domain.com/
 ProxyPassReverse /roundcube2/ https://proxymail2.domain.com/
 ```
+
+### nginx example:
+
+```nginx
+location /roundcube1/ {
+	proxy_pass https://proxymail1.domain.com/;
+}
+location /roundcube2/ {
+	proxy_pass https://proxymail2.domain.com/;
+}
+```
